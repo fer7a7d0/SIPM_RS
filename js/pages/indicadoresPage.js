@@ -78,8 +78,6 @@ function renderSummary(summary, selectedMonth) {
   const monthLabel = formatMonthLabel(summary.selectedMonth || selectedMonth);
   const showCurrentPeriods = Boolean(summary.isCurrentMonth);
   indicatorsTitle.textContent = `Indicadores: ${monthLabel}`;
-  document.getElementById("monthSupervisionsLabel").textContent = monthLabel;
-  document.getElementById("monthFindingsLabel").textContent = monthLabel;
   document.getElementById("trendTitle").textContent = `Tendencia de hallazgos (${monthLabel})`;
 
   [
