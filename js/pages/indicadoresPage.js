@@ -6,6 +6,8 @@ import { formatDateEs } from "../utils/dateTime.js";
 
 const supervisorName = document.getElementById("supervisorName");
 const currentDate = document.getElementById("currentDate");
+const indicatorsTitle = document.getElementById("indicatorsTitle");
+const monthFilter = document.getElementById("monthFilter");
 const indicadoresMessage = document.getElementById("indicadoresMessage");
 const kpiDayFinalizadas = document.getElementById("kpiDayFinalizadas");
 const kpiWeekFinalizadas = document.getElementById("kpiWeekFinalizadas");
@@ -24,6 +26,7 @@ const findingTypeRankingTableBody = document.querySelector("#findingTypeRankingT
 const findingRankingTableBody = document.querySelector("#findingRankingTable tbody");
 const timeGlobal = document.getElementById("timeGlobal");
 const timeBySupervisorTableBody = document.querySelector("#timeBySupervisorTable tbody");
+let latestRequestId = 0;
 
 init();
 
@@ -36,20 +39,62 @@ async function init() {
 
   supervisorName.textContent = session.userName || session.userId || "-";
   currentDate.textContent = `Fecha: ${formatDateEs(Date.now())}`;
+  const currentMonth = getCurrentMonthValue();
+  monthFilter.value = currentMonth;
+  monthFilter.max = currentMonth;
+  monthFilter.addEventListener("change", () => loadSummary(session, monthFilter.value));
 
+  await loadSummary(session, currentMonth);
+}
+
+async function loadSummary(session, selectedMonth) {
+  if (!selectedMonth) {
+    setMessage("Selecciona un mes para consultar los indicadores.", "error");
+    return;
+  }
+
+  const requestId = ++latestRequestId;
+  setMessage("Cargando indicadores...", "info");
   try {
     const summary = await apiRequest("dashboard.kpiSummary", {
       token: session.token,
-      windowDays: 30
+      month: selectedMonth
     });
 
-    renderSummary(summary || {});
+    if (requestId !== latestRequestId) {
+      return;
+    }
+
+    renderSummary(summary || {}, selectedMonth);
+    setMessage("", "");
   } catch (error) {
-    setMessage(error.message || "No se pudo cargar la informacion.", "error");
+    if (requestId === latestRequestId) {
+      setMessage(error.message || "No se pudo cargar la informacion.", "error");
+    }
   }
 }
 
-function renderSummary(summary) {
+function renderSummary(summary, selectedMonth) {
+  const monthLabel = formatMonthLabel(summary.selectedMonth || selectedMonth);
+  const showCurrentPeriods = Boolean(summary.isCurrentMonth);
+  indicatorsTitle.textContent = `Indicadores: ${monthLabel}`;
+  document.getElementById("monthSupervisionsLabel").textContent = monthLabel;
+  document.getElementById("monthFindingsLabel").textContent = monthLabel;
+  document.getElementById("trendTitle").textContent = `Tendencia de hallazgos (${monthLabel})`;
+
+  [
+    "daySupervisionsCard",
+    "weekSupervisionsCard",
+    "dayFindingsCard",
+    "weekFindingsCard",
+    "supervisorDayHeader",
+    "supervisorWeekHeader"
+  ].forEach((id) => {
+    document.getElementById(id).classList.toggle("d-none", !showCurrentPeriods);
+  });
+  document.getElementById("kpiFinalizadasCards").classList.toggle("single-period", !showCurrentPeriods);
+  document.getElementById("kpiHallazgosCards").classList.toggle("single-period", !showCurrentPeriods);
+
   const periods = summary.periods || {};
   const day = periods.day || {};
   const week = periods.week || {};
@@ -62,9 +107,9 @@ function renderSummary(summary) {
   kpiWeekHallazgos.textContent = String(week.hallazgosTotales ?? "-");
   kpiMonthHallazgos.textContent = String(month.hallazgosTotales ?? "-");
 
-  renderSupervisorTable(summary.bySupervisor || []);
+  renderSupervisorTable(summary.bySupervisor || [], showCurrentPeriods);
   renderOperatorTable(summary.byOperator || []);
-  renderTrendTable(summary.findingsTrend || []);
+  renderTrendTable(summary.findingsTrend || [], monthLabel);
   renderAreaTable(summary.areaRanking || []);
   renderOperatorRankingTable(summary.operatorRanking || []);
   renderFindingTypeRankingTable(summary.findingTypeRanking || []);
@@ -170,11 +215,12 @@ function renderOperatorTable(rows) {
   });
 }
 
-function renderSupervisorTable(rows) {
+function renderSupervisorTable(rows, showCurrentPeriods) {
   supervisorTableBody.innerHTML = "";
 
   if (!rows.length) {
-    supervisorTableBody.innerHTML = '<tr><td colspan="5" class="text-muted">Sin datos</td></tr>';
+    const columnCount = showCurrentPeriods ? 5 : 3;
+    supervisorTableBody.innerHTML = `<tr><td colspan="${columnCount}" class="text-muted">Sin datos</td></tr>`;
     return;
   }
 
@@ -183,10 +229,13 @@ function renderSupervisorTable(rows) {
     const complianceLabel = formatComplianceLabel(compliance);
 
     const tr = document.createElement("tr");
+    const currentPeriodCells = showCurrentPeriods
+      ? `<td>${row.day?.supervisionesFinalizadas ?? "-"}</td>
+         <td>${row.week?.supervisionesFinalizadas ?? "-"}</td>`
+      : "";
     tr.innerHTML = `
       <td>${row.supervisorName || row.supervisorId || "-"}</td>
-      <td>${row.day?.supervisionesFinalizadas ?? "-"}</td>
-      <td>${row.week?.supervisionesFinalizadas ?? "-"}</td>
+      ${currentPeriodCells}
       <td>${row.month?.supervisionesFinalizadas ?? "-"}</td>
       <td>${complianceLabel}</td>
     `;
@@ -207,13 +256,13 @@ function formatComplianceLabel(compliance) {
   return `${done}/${target} (${pctText})`;
 }
 
-function renderTrendTable(rows) {
+function renderTrendTable(rows, monthLabel) {
   trendChart.innerHTML = "";
 
   if (!rows.length) {
     trendChart.hidden = true;
     trendChartEmpty.hidden = false;
-    trendChartSummary.textContent = "Hallazgos diarios del periodo.";
+    trendChartSummary.textContent = `Sin hallazgos para ${monthLabel}.`;
     return;
   }
 
@@ -239,7 +288,7 @@ function renderTrendTable(rows) {
   const gridColor = "rgba(122, 47, 112, 0.18)";
   const textColor = "#6e5b6a";
 
-  trendChartSummary.textContent = `Total del periodo: ${totalHallazgos} hallazgos.`;
+  trendChartSummary.textContent = `Total de ${monthLabel}: ${totalHallazgos} hallazgos.`;
 
   const yTicks = buildTrendTicks(maxValue);
   const svgParts = [];
@@ -261,14 +310,19 @@ function renderTrendTable(rows) {
 
   svgParts.push(`<polyline fill="none" points="${polylinePoints}" class="trend-line" />`);
 
+  const labelInterval = points.length > 12 ? Math.ceil(points.length / 8) : 1;
   points.forEach((item, index) => {
     const x = padding.left + (index / steps) * innerWidth;
     const y = padding.top + innerHeight - (item.hallazgos / maxValue) * innerHeight;
     const label = formatTrendDate(item.date);
 
-    svgParts.push(`<circle cx="${x}" cy="${y}" r="5" class="trend-point" />`);
-    svgParts.push(`<text x="${x}" y="${padding.top + innerHeight + 22}" text-anchor="middle" class="trend-axis-label">${label}</text>`);
-    svgParts.push(`<text x="${x}" y="${y - 10}" text-anchor="middle" class="trend-value-label">${item.hallazgos}</text>`);
+    svgParts.push(`<circle cx="${x}" cy="${y}" r="${points.length > 12 ? 3 : 5}" class="trend-point"><title>${label}: ${item.hallazgos} hallazgos</title></circle>`);
+    if (index % labelInterval === 0 || index === points.length - 1) {
+      svgParts.push(`<text x="${x}" y="${padding.top + innerHeight + 22}" text-anchor="middle" class="trend-axis-label">${label}</text>`);
+      if (points.length <= 12) {
+        svgParts.push(`<text x="${x}" y="${y - 10}" text-anchor="middle" class="trend-value-label">${item.hallazgos}</text>`);
+      }
+    }
   });
 
   svgParts.push("</svg>");
@@ -302,6 +356,22 @@ function formatTrendDate(value) {
     return raw || "-";
   }
   return `${match[3]}/${match[2]}`;
+}
+
+function getCurrentMonthValue() {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  return `${now.getFullYear()}-${month}`;
+}
+
+function formatMonthLabel(value) {
+  const match = String(value || "").match(/^(\d{4})-(\d{2})$/);
+  if (!match) {
+    return value || "Mes seleccionado";
+  }
+
+  return new Intl.DateTimeFormat("es-MX", { month: "long", year: "numeric" })
+    .format(new Date(Number(match[1]), Number(match[2]) - 1, 1));
 }
 
 function renderAreaTable(rows) {

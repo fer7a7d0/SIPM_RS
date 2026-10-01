@@ -86,6 +86,11 @@
   width: 100%;
 }
 
+#kpiFinalizadasCards.single-period,
+#kpiHallazgosCards.single-period {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .kpi-card {
   border: 1px solid #d7e1dd;
   border-radius: 12px;

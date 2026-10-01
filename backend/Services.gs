@@ -62,14 +62,21 @@ function dashboardKpiSummaryService(payload) {
   var now = new Date();
   var todayKey = Utilities.formatDate(now, tz, "yyyy-MM-dd");
   var weekStartKey = Utilities.formatDate(shiftDateDays(now, -6), tz, "yyyy-MM-dd");
-  var monthStartKey = Utilities.formatDate(new Date(now.getFullYear(), now.getMonth(), 1), tz, "yyyy-MM-dd");
-
-  var windowDays = Number((payload && payload.windowDays) || 30);
-  if (!isFinite(windowDays) || windowDays < 7 || windowDays > 90) {
-    windowDays = 30;
-  }
-  var windowStartKey = Utilities.formatDate(shiftDateDays(now, -(windowDays - 1)), tz, "yyyy-MM-dd");
-  var effectiveStartKey = compareDateKeys(windowStartKey, monthStartKey) <= 0 ? windowStartKey : monthStartKey;
+  var currentMonth = Utilities.formatDate(now, tz, "yyyy-MM");
+  var selectedMonth = String((payload && payload.month) || currentMonth).trim();
+  var monthParts = selectedMonth.split("-");
+  var selectedYear = Number(monthParts[0]);
+  var selectedMonthIndex = Number(monthParts[1]) - 1;
+  var monthLastDay = new Date(Date.UTC(selectedYear, selectedMonthIndex + 1, 0)).getUTCDate();
+  var monthStartKey = selectedMonth + "-01";
+  var monthLastKey = selectedMonth + "-" + String(monthLastDay).padStart(2, "0");
+  var isCurrentMonth = selectedMonth === currentMonth;
+  var monthEndKey = isCurrentMonth ? todayKey : monthLastKey;
+  var monthTarget = calculateMonthlySupervisionTarget(
+    selectedYear,
+    selectedMonthIndex,
+    isCurrentMonth ? Number(todayKey.slice(8, 10)) : monthLastDay
+  );
 
   var usersMap = mapUsersById();
   var areasMap = mapAreasById();
@@ -83,7 +90,7 @@ function dashboardKpiSummaryService(payload) {
   }
 
   supervisions = supervisions.filter(function (item) {
-    return compareDateKeys(item.fecha, effectiveStartKey) >= 0 && compareDateKeys(item.fecha, todayKey) <= 0;
+    return compareDateKeys(item.fecha, monthStartKey) >= 0 && compareDateKeys(item.fecha, monthEndKey) <= 0;
   });
 
   var answers = listAllAnswers();
@@ -109,20 +116,29 @@ function dashboardKpiSummaryService(payload) {
     };
   });
 
-  var monthSlice = filterByDateRange(enriched, monthStartKey, todayKey);
+  var monthSlice = filterByDateRange(enriched, monthStartKey, monthEndKey);
 
   return {
     generatedAt: now.toISOString(),
     timezone: tz,
+    selectedMonth: selectedMonth,
+    isCurrentMonth: isCurrentMonth,
     periods: {
-      day: buildPeriodMetrics(filterByDateRange(enriched, todayKey, todayKey), todayKey, todayKey),
-      week: buildPeriodMetrics(filterByDateRange(enriched, weekStartKey, todayKey), weekStartKey, todayKey),
-      month: buildPeriodMetrics(monthSlice, monthStartKey, todayKey)
+      day: isCurrentMonth ? buildPeriodMetrics(filterByDateRange(monthSlice, todayKey, todayKey), todayKey, todayKey) : null,
+      week: isCurrentMonth ? buildPeriodMetrics(filterByDateRange(monthSlice, weekStartKey, monthEndKey), weekStartKey, monthEndKey) : null,
+      month: buildPeriodMetrics(monthSlice, monthStartKey, monthEndKey)
     },
-    bySupervisor: buildSupervisorMetrics(enriched),
+    bySupervisor: buildSupervisorMetrics(monthSlice, {
+      todayKey: todayKey,
+      weekStartKey: weekStartKey,
+      monthStartKey: monthStartKey,
+      monthEndKey: monthEndKey,
+      monthTarget: monthTarget,
+      isCurrentMonth: isCurrentMonth
+    }),
     byOperator: buildOperatorMetrics(monthSlice),
     operatorRanking: buildOperatorRanking(monthSlice),
-    findingsTrend: buildFindingsTrend(enriched, weekStartKey, todayKey),
+    findingsTrend: buildFindingsTrend(monthSlice, monthStartKey, monthEndKey),
     areaRanking: buildAreaRanking(monthSlice),
     findingTypeRanking: buildFindingTypeRanking(answers, monthSlice),
     findingRanking: buildFindingRanking(answers, monthSlice),
@@ -271,7 +287,7 @@ function buildPeriodMetrics(items, startKey, endKey) {
   };
 }
 
-function buildSupervisorMetrics(items) {
+function buildSupervisorMetrics(items, period) {
   var bySupervisor = {};
 
   for (var i = 0; i < items.length; i += 1) {
@@ -283,27 +299,20 @@ function buildSupervisorMetrics(items) {
   }
 
   var keys = Object.keys(bySupervisor);
-  var now = new Date();
-  var tz = Session.getScriptTimeZone();
-  var todayKey = Utilities.formatDate(now, tz, "yyyy-MM-dd");
-  var weekStartKey = Utilities.formatDate(shiftDateDays(now, -6), tz, "yyyy-MM-dd");
-  var monthStartKey = Utilities.formatDate(new Date(now.getFullYear(), now.getMonth(), 1), tz, "yyyy-MM-dd");
-  var monthTarget = calculateMonthlySupervisionTargetToDate(now);
-
   var rows = keys.map(function (supervisorId) {
     var list = bySupervisor[supervisorId];
-    var monthMetrics = buildPeriodMetrics(filterByDateRange(list, monthStartKey, todayKey), monthStartKey, todayKey);
+    var monthMetrics = buildPeriodMetrics(filterByDateRange(list, period.monthStartKey, period.monthEndKey), period.monthStartKey, period.monthEndKey);
     var monthDone = Number(monthMetrics.supervisionesFinalizadas || 0);
     return {
       supervisorId: supervisorId,
       supervisorName: list[0].supervisorName,
-      day: buildPeriodMetrics(filterByDateRange(list, todayKey, todayKey), todayKey, todayKey),
-      week: buildPeriodMetrics(filterByDateRange(list, weekStartKey, todayKey), weekStartKey, todayKey),
+      day: period.isCurrentMonth ? buildPeriodMetrics(filterByDateRange(list, period.todayKey, period.todayKey), period.todayKey, period.todayKey) : null,
+      week: period.isCurrentMonth ? buildPeriodMetrics(filterByDateRange(list, period.weekStartKey, period.monthEndKey), period.weekStartKey, period.monthEndKey) : null,
       month: monthMetrics,
       monthCompliance: {
         realizadas: monthDone,
-        meta: monthTarget,
-        cumplimientoPct: monthTarget > 0 ? toPercent(monthDone, monthTarget) : null
+        meta: period.monthTarget,
+        cumplimientoPct: period.monthTarget > 0 ? toPercent(monthDone, period.monthTarget) : null
       }
     };
   });
@@ -404,15 +413,11 @@ function buildOperatorRanking(items) {
   return rows.slice(0, 10);
 }
 
-function calculateMonthlySupervisionTargetToDate(now) {
-  var year = now.getFullYear();
-  var month = now.getMonth();
-  var dayOfMonth = now.getDate();
+function calculateMonthlySupervisionTarget(year, month, throughDay) {
   var target = 0;
 
-  for (var day = 1; day <= dayOfMonth; day += 1) {
-    var date = new Date(year, month, day);
-    var weekDay = date.getDay();
+  for (var day = 1; day <= throughDay; day += 1) {
+    var weekDay = new Date(Date.UTC(year, month, day)).getUTCDay();
 
     if (weekDay >= 1 && weekDay <= 5) {
       target += 2;
@@ -426,13 +431,12 @@ function calculateMonthlySupervisionTargetToDate(now) {
 
 function buildFindingsTrend(items, startKey, endKey) {
   var dates = [];
-  var cursor = new Date(startKey + "T00:00:00");
-  var endDate = new Date(endKey + "T00:00:00");
-  var tz = Session.getScriptTimeZone();
+  var cursor = new Date(startKey + "T00:00:00Z");
+  var endDate = new Date(endKey + "T00:00:00Z");
 
   while (cursor.getTime() <= endDate.getTime()) {
-    dates.push(Utilities.formatDate(cursor, tz, "yyyy-MM-dd"));
-    cursor = shiftDateDays(cursor, 1);
+    dates.push(cursor.toISOString().slice(0, 10));
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
   }
 
   var map = {};

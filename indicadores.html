@@ -17,12 +17,18 @@
   <body>
     <main class="container-fluid px-3 py-3 dashboard-page">
       <section class="surface dashboard-surface mx-auto">
-        <header class="d-flex justify-content-between align-items-start gap-3 mb-3">
+        <header class="d-flex justify-content-between align-items-start gap-3 mb-3 flex-wrap">
           <div>
             <p class="eyebrow mb-1">Indicadores</p>
-            <h1 class="title-lg">Informacion actual</h1>
+            <h1 id="indicatorsTitle" class="title-lg">Indicadores</h1>
           </div>
-          <a class="btn btn-outline-dark btn-sm" href="dashboard.html">Volver</a>
+          <div class="d-flex align-items-end justify-content-end gap-2 flex-wrap">
+            <label class="mb-0">
+              <span class="form-label mb-1">Mes</span>
+              <input id="monthFilter" class="form-control form-control-sm" type="month" aria-label="Filtrar indicadores por mes" />
+            </label>
+            <a class="btn btn-outline-dark btn-sm" href="dashboard.html">Volver</a>
+          </div>
         </header>
 
         <div class="card card-soft mb-3">
@@ -43,13 +49,13 @@
             <section class="kpi-block" id="summarySupervisionsKpiBlock">
               <h3 class="title-sm mb-2">Supervisiones</h3>
               <div class="kpi-grid" id="kpiFinalizadasCards">
-                <article class="kpi-card">
+                <article class="kpi-card" id="daySupervisionsCard">
                   <p class="meta mb-1 kpi-meta">
                     <span class="kpi-period period-day">Hoy</span>
                   </p>
                   <h3 id="kpiDayFinalizadas" class="title-md mb-0">-</h3>
                 </article>
-                <article class="kpi-card">
+                <article class="kpi-card" id="weekSupervisionsCard">
                   <p class="meta mb-1 kpi-meta">
                     <span class="kpi-period period-week">Semana</span>
                   </p>
@@ -57,7 +63,7 @@
                 </article>
                 <article class="kpi-card">
                   <p class="meta mb-1 kpi-meta">
-                    <span class="kpi-period period-month">Mes</span>
+                    <span id="monthSupervisionsLabel" class="kpi-period period-month">Mes</span>
                   </p>
                   <h3 id="kpiMonthFinalizadas" class="title-md mb-0">-</h3>
                 </article>
@@ -67,13 +73,13 @@
             <section class="kpi-block" id="summaryFindingsKpiBlock">
               <h3 class="title-sm mb-2">Hallazgos</h3>
               <div class="kpi-grid kpi-grid-3" id="kpiHallazgosCards">
-                <article class="kpi-card">
+                <article class="kpi-card" id="dayFindingsCard">
                   <p class="meta mb-1 kpi-meta">
                     <span class="kpi-period period-day">Hoy</span>
                   </p>
                   <h3 id="kpiDayHallazgos" class="title-md mb-0">-</h3>
                 </article>
-                <article class="kpi-card">
+                <article class="kpi-card" id="weekFindingsCard">
                   <p class="meta mb-1 kpi-meta">
                     <span class="kpi-period period-week">Semana</span>
                   </p>
@@ -81,7 +87,7 @@
                 </article>
                 <article class="kpi-card">
                   <p class="meta mb-1 kpi-meta">
-                    <span class="kpi-period period-month">Mes</span>
+                    <span id="monthFindingsLabel" class="kpi-period period-month">Mes</span>
                   </p>
                   <h3 id="kpiMonthHallazgos" class="title-md mb-0">-</h3>
                 </article>
@@ -104,9 +110,9 @@
                   <thead>
                     <tr>
                       <th>Supervisor</th>
-                      <th>Hoy</th>
-                      <th>Sem</th>
-                      <th>Mes</th>
+                      <th id="supervisorDayHeader">Hoy</th>
+                      <th id="supervisorWeekHeader">Sem</th>
+                      <th id="supervisorMonthHeader">Mes</th>
                       <th>% Cump.</th>
                     </tr>
                   </thead>
@@ -146,10 +152,10 @@
           </div>
           <div class="dashboard-analysis-layout">
             <section class="kpi-block" id="trendKpiBlock">
-              <h3 class="title-sm mb-2">Tendencia de hallazgos (7 dias)</h3>
+              <h3 id="trendTitle" class="title-sm mb-2">Tendencia de hallazgos</h3>
               <div class="trend-chart-shell">
                 <div id="trendChartSummary" class="trend-chart-summary">Hallazgos diarios del periodo.</div>
-                <div id="trendChart" class="trend-chart" aria-label="Grafica de tendencia de hallazgos en 7 dias"></div>
+                <div id="trendChart" class="trend-chart" aria-label="Grafica de hallazgos diarios del mes seleccionado"></div>
                 <p id="trendChartEmpty" class="trend-chart-empty text-muted mb-0" hidden>Sin datos</p>
               </div>
             </section>

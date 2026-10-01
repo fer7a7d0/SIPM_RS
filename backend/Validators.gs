@@ -13,6 +13,18 @@ function validateTokenPayload(payload) {
 function validateDashboardKpiSummaryPayload(payload) {
   validateTokenPayload(payload);
 
+  if (payload && payload.month !== undefined && payload.month !== null && payload.month !== "") {
+    var month = String(payload.month).trim();
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+      throw buildError("Mes invalido (formato AAAA-MM)", "BAD_REQUEST");
+    }
+
+    var currentMonth = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM");
+    if (month > currentMonth) {
+      throw buildError("No se puede consultar un mes futuro", "BAD_REQUEST");
+    }
+  }
+
   if (payload && payload.windowDays !== undefined && payload.windowDays !== null && payload.windowDays !== "") {
     var windowDays = Number(payload.windowDays);
     if (!isFinite(windowDays) || windowDays < 7 || windowDays > 90) {
