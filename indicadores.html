@@ -17,18 +17,12 @@
   <body>
     <main class="container-fluid px-3 py-3 dashboard-page">
       <section class="surface dashboard-surface mx-auto">
-        <header class="d-flex justify-content-between align-items-start gap-3 mb-3 flex-wrap">
+        <header class="d-flex justify-content-between align-items-start gap-3 mb-3">
           <div>
             <p class="eyebrow mb-1">Indicadores</p>
             <h1 id="indicatorsTitle" class="title-lg">Indicadores</h1>
           </div>
-          <div class="d-flex align-items-end justify-content-end gap-2 flex-wrap">
-            <label class="mb-0">
-              <span class="form-label mb-1">Mes</span>
-              <input id="monthFilter" class="form-control form-control-sm" type="month" aria-label="Filtrar indicadores por mes" />
-            </label>
-            <a class="btn btn-outline-dark btn-sm" href="dashboard.html">Volver</a>
-          </div>
+          <a class="btn btn-outline-dark btn-sm" href="dashboard.html">Volver</a>
         </header>
 
         <div class="card card-soft mb-3">
@@ -37,6 +31,13 @@
             <h2 id="supervisorName" class="title-md mb-2">-</h2>
             <p id="currentDate" class="mb-1">Fecha: -</p>
           </div>
+        </div>
+
+        <div class="d-flex justify-content-end mb-3">
+          <label class="mb-0">
+            <span class="form-label mb-1">Mes</span>
+            <input id="monthFilter" class="form-control form-control-sm" type="month" aria-label="Filtrar indicadores por mes" />
+          </label>
         </div>
 
         <section class="dashboard-group mb-4" aria-labelledby="overviewGroupTitle">
