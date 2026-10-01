@@ -48,24 +48,22 @@ async function init() {
 }
 
 async function loadSummary(session, selectedMonth) {
-  if (!selectedMonth) {
-    setMessage("Selecciona un mes para consultar los indicadores.", "error");
-    return;
-  }
+  const monthToLoad = selectedMonth || getCurrentMonthValue();
+  monthFilter.value = monthToLoad;
 
   const requestId = ++latestRequestId;
   setMessage("Cargando indicadores...", "info");
   try {
     const summary = await apiRequest("dashboard.kpiSummary", {
       token: session.token,
-      month: selectedMonth
+      month: monthToLoad
     });
 
     if (requestId !== latestRequestId) {
       return;
     }
 
-    renderSummary(summary || {}, selectedMonth);
+    renderSummary(summary || {}, monthToLoad);
     setMessage("", "");
   } catch (error) {
     if (requestId === latestRequestId) {
