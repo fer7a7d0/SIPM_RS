@@ -375,27 +375,61 @@ function renderDetail(data) {
   answers.forEach((item) => {
     const block = document.createElement("article");
     block.className = "detail-answer-item";
-
-    const photoLink = item.photoUrl
-      ? `<button type="button" class="photo-action-btn" data-photo-url="${item.photoUrl}">Ver fotografia</button>`
-      : "Sin fotografia";
+    const photoUrl = String(item.photoUrl || "").trim();
 
     block.innerHTML = `
       <p class="meta mb-1">${item.category || "General"}</p>
       <p class="mb-1"><strong>${item.question}</strong></p>
       <p class="mb-1">Respuesta: ${item.response || "-"}</p>
       <p class="mb-1">Comentario: ${item.comment || "-"}</p>
-      <p class="mb-0">${photoLink}</p>
+      <div class="detail-photo-preview-slot"></div>
+      <p class="mb-0 detail-photo-action-slot"></p>
     `;
 
     list.appendChild(block);
 
-    const photoButton = block.querySelector("[data-photo-url]");
-    if (photoButton) {
+    const previewSlot = block.querySelector(".detail-photo-preview-slot");
+    const photoActionSlot = block.querySelector(".detail-photo-action-slot");
+    if (photoUrl) {
+      const preview = document.createElement("img");
+      const renderUrl = buildPhotoRenderUrl(photoUrl);
+      const previewUrls = [...new Set([
+        renderUrl,
+        buildPhotoFallbackUrl(photoUrl, renderUrl),
+        photoUrl
+      ].filter(Boolean))];
+      let previewUrlIndex = 0;
+
+      preview.className = "detail-photo-preview";
+      preview.alt = `Vista previa de evidencia: ${item.question || "pregunta"}`;
+      preview.loading = "lazy";
+      preview.decoding = "async";
+      preview.src = previewUrls[previewUrlIndex];
+      preview.addEventListener("error", () => {
+        previewUrlIndex += 1;
+        if (previewUrlIndex < previewUrls.length) {
+          preview.src = previewUrls[previewUrlIndex];
+          return;
+        }
+
+        const unavailable = document.createElement("span");
+        unavailable.className = "text-muted";
+        unavailable.textContent = "No se pudo cargar la vista previa.";
+        previewSlot.replaceChildren(unavailable);
+      });
+      previewSlot.appendChild(preview);
+
+      const photoButton = document.createElement("button");
+      photoButton.type = "button";
+      photoButton.className = "photo-action-btn";
+      photoButton.textContent = "Ver fotografia";
       photoButton.addEventListener("click", () => {
         saveCurrentState();
-        openPhotoViewer(photoButton.getAttribute("data-photo-url"));
+        openPhotoViewer(photoUrl);
       });
+      photoActionSlot.appendChild(photoButton);
+    } else {
+      photoActionSlot.textContent = "Sin fotografia";
     }
   });
 
