@@ -6,6 +6,16 @@
   --indicator-card-bg: #f0f7f3;
   --indicator-card-border: #bdd8c9;
   --indicator-card-title: #0a6f56;
+  --indicator-summary-bg: #f2f8f4;
+  --indicator-summary-border: #c6dccb;
+  --indicator-performance-bg: #edf6f0;
+  --indicator-performance-border: #bdd8c5;
+  --indicator-analysis-bg: #f5f9f5;
+  --indicator-analysis-border: #cbdccf;
+  --indicator-ranking-bg: #eaf4ed;
+  --indicator-ranking-border: #bdd7c4;
+  --indicator-efficiency-bg: #e8f3ee;
+  --indicator-efficiency-border: #b5d5c5;
   --indicator-period-bg: #e0f2e8;
   --indicator-period-text: #0a6f56;
   --indicator-chart-grid: rgba(14, 141, 109, 0.18);
@@ -130,6 +140,31 @@
   background: var(--indicator-card-bg);
 }
 
+#summarySupervisionsKpiBlock,
+#summaryFindingsKpiBlock {
+  border-color: var(--indicator-summary-border);
+  background: var(--indicator-summary-bg);
+}
+
+#supervisorKpiBlock,
+#operatorKpiBlock {
+  border-color: var(--indicator-performance-border);
+  background: var(--indicator-performance-bg);
+}
+
+#trendKpiBlock {
+  border-color: var(--indicator-analysis-border);
+  background: var(--indicator-analysis-bg);
+}
+
+#operatorRankingKpiBlock,
+#findingTypeRankingKpiBlock,
+#findingRankingKpiBlock,
+#operatorFindingParetoKpiBlock {
+  border-color: var(--indicator-ranking-border);
+  background: var(--indicator-ranking-bg);
+}
+
 #kpiFinalizadasCards .kpi-card,
 #kpiHallazgosCards .kpi-card {
   border-color: var(--indicator-card-border);
@@ -199,8 +234,8 @@
 }
 
 #rankingKpiBlock {
-  border-color: var(--indicator-card-border);
-  background: var(--indicator-card-bg);
+  border-color: var(--indicator-ranking-border);
+  background: var(--indicator-ranking-bg);
 }
 
 #operatorFindingParetoKpiBlock {
@@ -208,8 +243,8 @@
 }
 
 #timeKpiBlock {
-  border-color: var(--indicator-card-border);
-  background: var(--indicator-card-bg);
+  border-color: var(--indicator-efficiency-border);
+  background: var(--indicator-efficiency-bg);
 }
 
 .title-sm {
@@ -418,6 +453,16 @@
     --indicator-card-bg: #172823;
     --indicator-card-border: #35574a;
     --indicator-card-title: #8fe0bd;
+    --indicator-summary-bg: #1b2c24;
+    --indicator-summary-border: #355342;
+    --indicator-performance-bg: #1a3025;
+    --indicator-performance-border: #385b45;
+    --indicator-analysis-bg: #182b23;
+    --indicator-analysis-border: #324f3f;
+    --indicator-ranking-bg: #1b3327;
+    --indicator-ranking-border: #3b5d47;
+    --indicator-efficiency-bg: #19352a;
+    --indicator-efficiency-border: #3d634d;
     --indicator-period-bg: #244638;
     --indicator-period-text: #a8e7c9;
     --indicator-chart-grid: rgba(123, 224, 187, 0.17);
@@ -486,18 +531,34 @@
   }
 
   #summarySupervisionsKpiBlock,
-  #summaryFindingsKpiBlock,
+  #summaryFindingsKpiBlock {
+    border-color: var(--indicator-summary-border);
+    background: var(--indicator-summary-bg);
+  }
+
   #supervisorKpiBlock,
-  #operatorKpiBlock,
-  #trendKpiBlock,
+  #operatorKpiBlock {
+    border-color: var(--indicator-performance-border);
+    background: var(--indicator-performance-bg);
+  }
+
+  #trendKpiBlock {
+    border-color: var(--indicator-analysis-border);
+    background: var(--indicator-analysis-bg);
+  }
+
   #rankingKpiBlock,
   #operatorRankingKpiBlock,
   #findingTypeRankingKpiBlock,
   #findingRankingKpiBlock,
-  #operatorFindingParetoKpiBlock,
+  #operatorFindingParetoKpiBlock {
+    border-color: var(--indicator-ranking-border);
+    background: var(--indicator-ranking-bg);
+  }
+
   #timeKpiBlock {
-    border-color: var(--indicator-card-border);
-    background: var(--indicator-card-bg);
+    border-color: var(--indicator-efficiency-border);
+    background: var(--indicator-efficiency-bg);
   }
 
   #summarySupervisionsKpiBlock .title-sm,
