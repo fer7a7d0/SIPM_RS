@@ -662,7 +662,7 @@ function buildOperatorFindingPareto(answers, monthItems) {
   for (var k = 0; k < rows.length; k += 1) {
     includedOperators.push(rows[k]);
     coveredHallazgos += rows[k].hallazgosTotales;
-    if (coveredHallazgos >= totalHallazgos * 0.8) {
+    if (coveredHallazgos >= totalHallazgos * 0.5) {
       break;
     }
   }
