@@ -103,25 +103,46 @@
             <p class="group-copy mb-0">Comparativa de supervisores y operadores para ver productividad, base evaluada y nivel de cumplimiento.</p>
           </div>
           <div class="dashboard-two-column-grid">
-            <section class="kpi-block" id="supervisorKpiBlock">
-              <h3 class="title-sm mb-2">Supervisiones por supervisor</h3>
-              <div class="table-wrap">
-                <table class="table table-sm align-middle mb-0" id="supervisorTable">
-                  <thead>
-                    <tr>
-                      <th>Supervisor</th>
-                      <th id="supervisorDayHeader">Hoy</th>
-                      <th id="supervisorWeekHeader">Sem</th>
-                      <th id="supervisorMonthHeader">Mes</th>
-                      <th>% Cump.</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr><td colspan="5" class="text-muted">Sin datos</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </section>
+            <div class="dashboard-stack-grid">
+              <section class="kpi-block" id="supervisorKpiBlock">
+                <h3 class="title-sm mb-2">Supervisiones por supervisor</h3>
+                <div class="table-wrap">
+                  <table class="table table-sm align-middle mb-0" id="supervisorTable">
+                    <thead>
+                      <tr>
+                        <th>Supervisor</th>
+                        <th id="supervisorDayHeader">Hoy</th>
+                        <th id="supervisorWeekHeader">Sem</th>
+                        <th id="supervisorMonthHeader">Mes</th>
+                        <th>% Cump.</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td colspan="5" class="text-muted">Sin datos</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
+              <section class="kpi-block" id="timeKpiBlock">
+                <h3 class="title-sm mb-2">Tiempos de supervision</h3>
+                <p id="timeGlobal" class="mb-2 text-muted">Promedio global: - | P90: -</p>
+                <div class="table-wrap">
+                  <table class="table table-sm align-middle mb-0" id="timeBySupervisorTable">
+                    <thead>
+                      <tr>
+                        <th>Supervisor</th>
+                        <th>Promedio (min)</th>
+                        <th>P90 (min)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td colspan="3" class="text-muted">Sin datos</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            </div>
 
             <section class="kpi-block" id="operatorKpiBlock">
               <h3 class="title-sm mb-2">Supervisiones por operador</h3>
@@ -161,6 +182,23 @@
             </section>
 
             <div class="dashboard-ranking-grid">
+              <section class="kpi-block" id="findingTypeRankingKpiBlock">
+                <h3 class="title-sm mb-2">Ranking de tipos de hallazgo (mes)</h3>
+                <div class="table-wrap">
+                  <table class="table table-sm align-middle mb-0" id="findingTypeRankingTable">
+                    <thead>
+                      <tr>
+                        <th>Tipo de hallazgo</th>
+                        <th>Hallazgos</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td colspan="2" class="text-muted">Sin datos</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
               <section class="kpi-block" id="rankingKpiBlock">
                 <h3 class="title-sm mb-2">Ranking de areas (mes)</h3>
                 <div class="table-wrap">
@@ -192,23 +230,6 @@
                     </thead>
                     <tbody>
                       <tr><td colspan="3" class="text-muted">Sin datos</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-
-              <section class="kpi-block" id="findingTypeRankingKpiBlock">
-                <h3 class="title-sm mb-2">Ranking de tipos de hallazgo (mes)</h3>
-                <div class="table-wrap">
-                  <table class="table table-sm align-middle mb-0" id="findingTypeRankingTable">
-                    <thead>
-                      <tr>
-                        <th>Tipo de hallazgo</th>
-                        <th>Hallazgos</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr><td colspan="2" class="text-muted">Sin datos</td></tr>
                     </tbody>
                   </table>
                 </div>
@@ -252,32 +273,6 @@
               </section>
             </div>
           </div>
-        </section>
-
-        <section class="dashboard-group mb-3" aria-labelledby="efficiencyGroupTitle">
-          <div class="group-header mb-3">
-            <p class="group-kicker mb-1">Eficiencia</p>
-            <h2 id="efficiencyGroupTitle" class="group-title mb-1">Tiempos de supervision</h2>
-            <p class="group-copy mb-0">Vista de velocidad promedio y percentil alto para identificar carga operativa y dispersion.</p>
-          </div>
-          <section class="kpi-block" id="timeKpiBlock">
-            <h3 class="title-sm mb-2">Tiempos de supervision</h3>
-            <p id="timeGlobal" class="mb-2 text-muted">Promedio global: - | P90: -</p>
-            <div class="table-wrap">
-              <table class="table table-sm align-middle mb-0" id="timeBySupervisorTable">
-                <thead>
-                  <tr>
-                    <th>Supervisor</th>
-                    <th>Promedio (min)</th>
-                    <th>P90 (min)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><td colspan="3" class="text-muted">Sin datos</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
         </section>
 
         <div id="indicadoresMessage" class="status-slot mt-3" aria-live="polite"></div>
