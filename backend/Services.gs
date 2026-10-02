@@ -138,6 +138,7 @@ function dashboardKpiSummaryService(payload) {
     }),
     byOperator: buildOperatorMetrics(monthSlice),
     operatorRanking: buildOperatorRanking(monthSlice),
+    operatorFindingPareto: buildOperatorFindingPareto(answers, monthSlice),
     findingsTrend: buildFindingsTrend(monthSlice, monthStartKey, monthEndKey),
     areaRanking: buildAreaRanking(monthSlice),
     findingTypeRanking: buildFindingTypeRanking(answers, monthSlice),
@@ -584,6 +585,94 @@ function buildFindingRanking(answers, monthItems) {
   });
 
   return rows.slice(0, 10);
+}
+
+function buildOperatorFindingPareto(answers, monthItems) {
+  var supervisionById = {};
+  var byOperator = {};
+  var totalHallazgos = 0;
+
+  for (var i = 0; i < monthItems.length; i += 1) {
+    var item = monthItems[i];
+    supervisionById[String(item.id || "").trim()] = item;
+  }
+
+  for (var j = 0; j < answers.length; j += 1) {
+    var answer = answers[j];
+    var supervisionId = String(answer.supervisionId || "").trim();
+    var supervision = supervisionById[supervisionId];
+    var response = String(answer.response || "").trim().toLowerCase();
+
+    if (!supervision || response !== "no cumple") {
+      continue;
+    }
+
+    var operatorId = String(supervision.operatorId || "").trim();
+    var operatorKey = operatorId.toUpperCase() || "SIN_OPERADOR";
+    var finding = String(answer.questionText || "").trim() || "Hallazgo sin detalle";
+
+    if (!byOperator[operatorKey]) {
+      byOperator[operatorKey] = {
+        operatorId: operatorId,
+        operatorName: String(supervision.operatorName || "").trim() || operatorId || "Sin operador",
+        hallazgosTotales: 0,
+        findings: {}
+      };
+    }
+
+    byOperator[operatorKey].hallazgosTotales += 1;
+    byOperator[operatorKey].findings[finding] = Number(byOperator[operatorKey].findings[finding] || 0) + 1;
+    totalHallazgos += 1;
+  }
+
+  var rows = Object.keys(byOperator).map(function (key) {
+    var operator = byOperator[key];
+    var findings = Object.keys(operator.findings).map(function (finding) {
+      return {
+        finding: finding,
+        hallazgos: operator.findings[finding]
+      };
+    });
+
+    findings.sort(function (a, b) {
+      if (b.hallazgos !== a.hallazgos) {
+        return b.hallazgos - a.hallazgos;
+      }
+      return String(a.finding || "").localeCompare(String(b.finding || ""));
+    });
+
+    return {
+      operatorId: operator.operatorId,
+      operatorName: operator.operatorName,
+      hallazgosTotales: operator.hallazgosTotales,
+      findings: findings
+    };
+  });
+
+  rows.sort(function (a, b) {
+    if (b.hallazgosTotales !== a.hallazgosTotales) {
+      return b.hallazgosTotales - a.hallazgosTotales;
+    }
+    return String(a.operatorName || "").localeCompare(String(b.operatorName || ""));
+  });
+
+  var includedOperators = [];
+  var coveredHallazgos = 0;
+
+  for (var k = 0; k < rows.length; k += 1) {
+    includedOperators.push(rows[k]);
+    coveredHallazgos += rows[k].hallazgosTotales;
+    if (coveredHallazgos >= totalHallazgos * 0.8) {
+      break;
+    }
+  }
+
+  return {
+    totalHallazgos: totalHallazgos,
+    coveredHallazgos: coveredHallazgos,
+    coveredPct: toPercent(coveredHallazgos, totalHallazgos) || 0,
+    operators: includedOperators
+  };
 }
 
 function buildTimeMetrics(items) {

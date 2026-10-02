@@ -245,6 +245,10 @@
   color: #1f625e;
 }
 
+#operatorFindingParetoKpiBlock {
+  grid-column: 1 / -1;
+}
+
 #timeKpiBlock {
   border-color: #7db8bc;
   background: linear-gradient(180deg, #eaf9fa 0%, #f4feff 100%);

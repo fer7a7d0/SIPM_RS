@@ -24,6 +24,8 @@ const areaTableBody = document.querySelector("#areaTable tbody");
 const operatorRankingTableBody = document.querySelector("#operatorRankingTable tbody");
 const findingTypeRankingTableBody = document.querySelector("#findingTypeRankingTable tbody");
 const findingRankingTableBody = document.querySelector("#findingRankingTable tbody");
+const operatorFindingParetoSummary = document.getElementById("operatorFindingParetoSummary");
+const operatorFindingParetoTableBody = document.querySelector("#operatorFindingParetoTable tbody");
 const timeGlobal = document.getElementById("timeGlobal");
 const timeBySupervisorTableBody = document.querySelector("#timeBySupervisorTable tbody");
 let latestRequestId = 0;
@@ -110,6 +112,7 @@ function renderSummary(summary, selectedMonth) {
   renderOperatorRankingTable(summary.operatorRanking || []);
   renderFindingTypeRankingTable(summary.findingTypeRanking || []);
   renderFindingRankingTable(summary.findingRanking || []);
+  renderOperatorFindingPareto(summary.operatorFindingPareto || {});
   renderTimeMetrics(summary.timeMetrics || {});
 }
 
@@ -128,6 +131,51 @@ function renderFindingRankingTable(rows) {
       <td>${row.hallazgos ?? "-"}</td>
     `;
     findingRankingTableBody.appendChild(tr);
+  });
+}
+
+function renderOperatorFindingPareto(data) {
+  const operators = data.operators || [];
+  const totalHallazgos = Number(data.totalHallazgos || 0);
+  const coveredHallazgos = Number(data.coveredHallazgos || 0);
+  const coveredPct = Number(data.coveredPct || 0);
+
+  operatorFindingParetoTableBody.innerHTML = "";
+  if (!operators.length) {
+    operatorFindingParetoSummary.textContent = "Sin hallazgos para el periodo seleccionado.";
+    operatorFindingParetoTableBody.innerHTML = '<tr><td colspan="4" class="text-muted">Sin datos</td></tr>';
+    return;
+  }
+
+  operatorFindingParetoSummary.textContent =
+    `${coveredHallazgos} de ${totalHallazgos} hallazgos (${coveredPct}%) concentrados en ${operators.length} operadores.`;
+
+  operators.forEach((operator) => {
+    const findings = operator.findings || [];
+    findings.forEach((finding, index) => {
+      const tr = document.createElement("tr");
+
+      if (index === 0) {
+        const operatorCell = document.createElement("td");
+        operatorCell.textContent = operator.operatorName || operator.operatorId || "-";
+        operatorCell.rowSpan = findings.length;
+        tr.appendChild(operatorCell);
+
+        const totalCell = document.createElement("td");
+        totalCell.textContent = String(operator.hallazgosTotales ?? "-");
+        totalCell.rowSpan = findings.length;
+        tr.appendChild(totalCell);
+      }
+
+      const findingCell = document.createElement("td");
+      findingCell.textContent = finding.finding || "Hallazgo sin detalle";
+      tr.appendChild(findingCell);
+
+      const countCell = document.createElement("td");
+      countCell.textContent = String(finding.hallazgos ?? "-");
+      tr.appendChild(countCell);
+      operatorFindingParetoTableBody.appendChild(tr);
+    });
   });
 }
 

@@ -1,6 +1,6 @@
 export const APP_CONFIG = {
   appName: "SIPM Supervisiones",
-  apiBaseUrl: "https://script.google.com/macros/s/AKfycby2rUXkR585G4pI2Tgl4fygXk0vuKeQqDn4zvGQpy7bWT93PhQIEHKol3BqWAik4JEIpA/exec",
+  apiBaseUrl: "https://script.google.com/macros/s/AKfycbxV-bSk0lDf7RjFeaDXXoOIevF1EsmlnossTKJGpGyrzS1z4e4foNZMUxKJS5ea3nqeyw/exec",
   sessionDurationHours: 12
 };
 
